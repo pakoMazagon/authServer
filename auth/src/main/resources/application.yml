@@ -1,0 +1,10 @@
+server:
+  port: 9000
+loggin:
+  level:
+    org:
+      springframework:
+        security: TRACE
+spring:
+  application:
+    name: auth
