@@ -1,0 +1,39 @@
+openapi: 3.0.0
+info:
+  title: Authorization Server API
+  version: 1.0.0
+paths:
+  /auth/create:
+    post:
+      summary: Crea un nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppUser'
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+components:
+  schemas:
+    CreateAppUser:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string

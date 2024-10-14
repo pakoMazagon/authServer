@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="create-tables" author="yourname">
+    <!-- Create AppUser table -->
+        <createTable tableName="app_user">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expired" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="locked" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="credentials_expired" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="disabled" type="BOOLEAN">
+                <constraints nullable="false" />
+            </column>
+            <column name="version" type="INTEGER"></column>
+            <column name="created_by" type="VARCHAR(20)"></column>
+            <column name="created_at" type="TIMESTAMPTZ(0)"></column>
+            <column name="modified_by" type="VARCHAR(20)"></column>
+            <column name="modified_at" type="TIMESTAMPTZ(0)"></column>
+        </createTable>
+        
+        <!-- Create Role table -->
+        <createTable tableName="role">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="INTEGER"></column>
+            <column name="created_by" type="VARCHAR(20)"></column>
+            <column name="created_at" type="TIMESTAMPTZ(0)"></column>
+            <column name="modified_by" type="VARCHAR(20)"></column>
+            <column name="modified_at" type="TIMESTAMPTZ(0)"></column>
+        </createTable>
+        
+        <!-- Create AppUser_Role junction table -->
+        <createTable tableName="app_user_role">
+            <column name="app_user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <!-- Add foreign key constraint to AppUser_Role table -->
+        <addForeignKeyConstraint baseTableName="app_user_role"
+        baseColumnNames="app_user_id"
+        constraintName="FK_app_user_role_app_user"
+        referencedTableName="app_user"
+        referencedColumnNames="id"
+        onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="app_user_role"
+        baseColumnNames="role_id"
+        constraintName="FK_app_user_role_role"
+        referencedTableName="role"
+        referencedColumnNames="id"
+        onDelete="CASCADE"/>
+        <addPrimaryKey tableName="app_user_role" columnNames="app_user_id, role_id"/>
+    </changeSet>
+        
+        <!-- Insert initial data into Role table -->
+    <changeSet id="insert-initial-roles" author="yourname">
+        <sql>INSERT INTO role (id,role,version) VALUES ('a901cd49-bc43-43c2-bf9e-45c406c6a681','ROLE_USER',1);</sql>
+        <sql>INSERT INTO role (id,role,version) VALUES ('d87ebe43-bc48-44b3-ba7f-8a43cd8bd7e2','ROLE_ADMIN',1);</sql>
+    </changeSet>
+</databaseChangeLog>
