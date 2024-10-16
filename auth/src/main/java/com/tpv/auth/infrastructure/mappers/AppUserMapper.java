@@ -1,11 +1,9 @@
 package com.tpv.auth.infrastructure.mappers;
 
-import com.tpv.auth.domain.dto.MessageDTO;
 import com.tpv.auth.domain.entitities.AppUser;
 import com.tpv.auth.domain.entitities.Role;
 import com.tpv.auth.domain.vo.CreateUserVO;
 import com.tpv.auth.infrastructure.dto.CreateAppUserDTO;
-import com.tpv.auth.infrastructure.dto.MessageResponseDTO;
 import com.tpv.auth.infrastructure.entities.users.AppUserEntity;
 import com.tpv.auth.infrastructure.entities.users.RoleEntity;
 import org.mapstruct.*;
@@ -23,6 +21,4 @@ public interface AppUserMapper {
 	RoleEntity mapToRoleEntity(Role Role);
 
 	CreateUserVO mapToCreateUserVO(CreateAppUserDTO createAppUserDtoDTO);
-
-	MessageResponseDTO mapToMessageResponseDTO(MessageDTO messageDTO);
 }
