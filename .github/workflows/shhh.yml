@@ -1,0 +1,13 @@
+name: Secrets
+
+on:
+  workflow_dispatch:
+
+jobs:
+  testing_secrets:
+    name: Testing secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: My first secret
+        run: echo ${{secrets.GOOGLE_CLIENT_ID}}
