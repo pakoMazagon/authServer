@@ -6,6 +6,8 @@ loggin:
       springframework:
         security: TRACE
 spring:
+  resources:
+    static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/
   jpa:
     show-sql: true
     properties:
@@ -24,3 +26,16 @@ spring:
       initialization-fail-timeout: 5000
       data-source-properties:
         preparedStatementCacheQueries: 0
+  security:
+    oauth2:
+      client:
+        registration:
+          google-idp:
+            provider: google
+            client-id: ${GOOGLE_CLIENT_ID:google_client_id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:google_client_secret}
+            scope: openid, https://www.googleapis.com/auth/userinfo.profile, https://www.googleapis.com/auth/userinfo.email
+            client-name: oauth2-tutorial-client
+        provider:
+          google:
+            user-name-attribute: email
