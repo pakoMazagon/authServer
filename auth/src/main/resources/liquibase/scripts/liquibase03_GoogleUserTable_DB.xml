@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="create-table-google-user" author="frc">
+    <!-- Create client table -->
+        <sql stripComments="true">
+            CREATE TABLE google_user (
+                id UUID NOT NULL,
+                email varchar(255) NOT NULL,
+                name varchar(255) NOT NULL,
+                given_name varchar(255) NOT NULL,
+                family_name varchar(255) NOT NULL,
+                picture_url varchar(512) DEFAULT NULL,
+                version int NOT NULL,
+                created_by varchar(255) DEFAULT NULL,
+                created_at timestamp DEFAULT NULL,
+                modified_by varchar(255) DEFAULT NULL,
+                modified_at timestamp DEFAULT NULL,
+                PRIMARY KEY (id)
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

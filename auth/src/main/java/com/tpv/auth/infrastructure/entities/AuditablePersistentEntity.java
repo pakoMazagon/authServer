@@ -22,7 +22,6 @@ public abstract class AuditablePersistentEntity implements Serializable {
 	private static final long serialVersionUID = 1;
 
 	@Id
-	// @jakarta.persistence.Id
 	private UUID id;
 
 	@Version

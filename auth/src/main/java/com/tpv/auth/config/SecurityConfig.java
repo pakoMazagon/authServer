@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.tpv.auth.federation.FederatedIdentityConfigurer;
 import com.tpv.auth.federation.UserRepositoryOAuth2UserHandler;
+import com.tpv.auth.infrastructure.repositories.GoogleUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,6 +51,8 @@ public class SecurityConfig {
 
 	private final PasswordEncoder passwordEncoder;
 
+	private final GoogleUserRepository googleUserRepository;
+
 	@Bean
 	@Order(1)
 	public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -72,7 +75,7 @@ public class SecurityConfig {
 	@Order(2)
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 		final FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
-				.oauth2UserHandler(new UserRepositoryOAuth2UserHandler());
+				.oauth2UserHandler(new UserRepositoryOAuth2UserHandler(this.googleUserRepository));
 		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/auth/**", "/client/**", "/login")
 				.permitAll().anyRequest().authenticated()).formLogin(Customizer.withDefaults());
 		// .apply(federatedIdentityConfigurer); //deprecated
