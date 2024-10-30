@@ -5,6 +5,9 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.tpv.auth.federation.FederatedIdentityConfigurer;
+import com.tpv.auth.federation.UserRepositoryOAuth2UserHandler;
+import com.tpv.auth.infrastructure.repositories.GoogleUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +18,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationConsentService;
+import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -24,6 +33,7 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
@@ -40,6 +50,8 @@ import java.util.stream.Collectors;
 public class SecurityConfig {
 
 	private final PasswordEncoder passwordEncoder;
+
+	private final GoogleUserRepository googleUserRepository;
 
 	@Bean
 	@Order(1)
@@ -62,12 +74,13 @@ public class SecurityConfig {
 	@Bean
 	@Order(2)
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.authorizeHttpRequests((authorize) -> authorize.requestMatchers("/auth/**", "/clients/**").permitAll()
-				.anyRequest().authenticated())
-				// /auth/** permitAll and others must be authenticated
-				// authorization server filter chain
-				.formLogin(Customizer.withDefaults());
+		final FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
+				.oauth2UserHandler(new UserRepositoryOAuth2UserHandler(this.googleUserRepository));
+		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/auth/**", "/client/**", "/login")
+				.permitAll().anyRequest().authenticated()).formLogin(Customizer.withDefaults());
+		// .apply(federatedIdentityConfigurer); //deprecated
 		http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/clients/**"));
+		federatedIdentityConfigurer.init(http);
 		return http.build();
 	}
 
@@ -102,6 +115,26 @@ public class SecurityConfig {
 				context.getClaims().claim("roles", roles).claim("username", principal.getName());
 			}
 		};
+	}
+
+	@Bean
+	public SessionRegistry sessionRegistry() {
+		return new SessionRegistryImpl();
+	}
+
+	@Bean
+	public HttpSessionEventPublisher httpSessionEventPublisher() {
+		return new HttpSessionEventPublisher();
+	}
+
+	@Bean
+	public OAuth2AuthorizationService authorizationService() {
+		return new InMemoryOAuth2AuthorizationService();
+	}
+
+	@Bean
+	public OAuth2AuthorizationConsentService authorizationConsentService() {
+		return new InMemoryOAuth2AuthorizationConsentService();
 	}
 
 	@Bean
