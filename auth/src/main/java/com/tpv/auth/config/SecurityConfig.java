@@ -49,127 +49,128 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-	private final GoogleUserRepository googleUserRepository;
+    private final GoogleUserRepository googleUserRepository;
 
-	@Bean
-	@Order(1)
-	public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.cors(Customizer.withDefaults());
-		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class).oidc(Customizer.withDefaults()); // Enable OpenID
-																										// Connect 1.0
-		http
-				// Redirect to the login page when not authenticated from the
-				// authorization endpoint
-				.exceptionHandling((exceptions) -> exceptions.defaultAuthenticationEntryPointFor(
-						new LoginUrlAuthenticationEntryPoint("/login"),
-						new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
-				// Accept access tokens for User Info and/or Client Registration
-				.oauth2ResourceServer((resourceServer) -> resourceServer.jwt(Customizer.withDefaults()));
+    @Bean
+    @Order(1)
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.cors(Customizer.withDefaults());
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class).oidc(Customizer.withDefaults()); // Enable OpenID
+        // Connect 1.0
+        http
+                // Redirect to the login page when not authenticated from the
+                // authorization endpoint
+                .exceptionHandling((exceptions) -> exceptions.defaultAuthenticationEntryPointFor(
+                        new LoginUrlAuthenticationEntryPoint("/login"),
+                        new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
+                // Accept access tokens for User Info and/or Client Registration
+                .oauth2ResourceServer((resourceServer) -> resourceServer.jwt(Customizer.withDefaults()));
 
-		return http.build();
-	}
+        return http.build();
+    }
 
-	@Bean
-	@Order(2)
-	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.cors(Customizer.withDefaults());
-		final FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
-				.oauth2UserHandler(new UserRepositoryOAuth2UserHandler(this.googleUserRepository));
-		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/auth/**", "/client/**", "/login")
-				.permitAll().anyRequest().authenticated()).formLogin(Customizer.withDefaults());
-		// .apply(federatedIdentityConfigurer); //deprecated
-		http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/clients/**"));
-		federatedIdentityConfigurer.init(http);
-		return http.build();
-	}
+    @Bean
+    @Order(2)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.cors(Customizer.withDefaults());
+        final FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
+                .oauth2UserHandler(new UserRepositoryOAuth2UserHandler(this.googleUserRepository));
+        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/auth/**", "/client/**", "/login")
+                .permitAll().anyRequest().authenticated()).formLogin(Customizer.withDefaults());
+        // .apply(federatedIdentityConfigurer); //deprecated
+        http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://127.0.0.1:5173/logout"));
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/clients/**"));
+        federatedIdentityConfigurer.init(http);
+        return http.build();
+    }
 
-	// @Bean
-	// public RegisteredClientRepository registeredClientRepository() {
-	// final RegisteredClient oidcClient =
-	// RegisteredClient.withId(UUID.randomUUID().toString())
-	// .clientId("oidc-client").clientSecret(this.passwordEncoder.encode("secret"))
-	// .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-	// .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-	// .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-	// // .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-	// .redirectUri("https://oauthdebugger.com/debug")
-	// // .postLogoutRedirectUri("http://127.0.0.1:8080/hola!")
-	// .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE)
-	// .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build()).build();
-	//
-	// return new InMemoryRegisteredClientRepository(oidcClient);
-	// }
+    // @Bean
+    // public RegisteredClientRepository registeredClientRepository() {
+    // final RegisteredClient oidcClient =
+    // RegisteredClient.withId(UUID.randomUUID().toString())
+    // .clientId("oidc-client").clientSecret(this.passwordEncoder.encode("secret"))
+    // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+    // .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+    // .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+    // // .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
+    // .redirectUri("https://oauthdebugger.com/debug")
+    // // .postLogoutRedirectUri("http://127.0.0.1:8080/hola!")
+    // .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE)
+    // .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build()).build();
+    //
+    // return new InMemoryRegisteredClientRepository(oidcClient);
+    // }
 
-	@Bean
-	public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
-		return context -> {
-			final Authentication principal = context.getPrincipal();
-			if (context.getTokenType().getValue().equals("id_token")) {
-				context.getClaims().claim("token_type", "id token");
-			}
-			if (context.getTokenType().getValue().equals("access_token")) {
-				context.getClaims().claim("token_type", "access token");
-				final Set<String> roles = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-						.collect(Collectors.toSet());
-				context.getClaims().claim("roles", roles).claim("username", principal.getName());
-			}
-		};
-	}
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
+        return context -> {
+            final Authentication principal = context.getPrincipal();
+            if (context.getTokenType().getValue().equals("id_token")) {
+                context.getClaims().claim("token_type", "id token");
+            }
+            if (context.getTokenType().getValue().equals("access_token")) {
+                context.getClaims().claim("token_type", "access token");
+                final Set<String> roles = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toSet());
+                context.getClaims().claim("roles", roles).claim("username", principal.getName());
+            }
+        };
+    }
 
-	@Bean
-	public SessionRegistry sessionRegistry() {
-		return new SessionRegistryImpl();
-	}
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
 
-	@Bean
-	public HttpSessionEventPublisher httpSessionEventPublisher() {
-		return new HttpSessionEventPublisher();
-	}
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
 
-	@Bean
-	public OAuth2AuthorizationService authorizationService() {
-		return new InMemoryOAuth2AuthorizationService();
-	}
+    @Bean
+    public OAuth2AuthorizationService authorizationService() {
+        return new InMemoryOAuth2AuthorizationService();
+    }
 
-	@Bean
-	public OAuth2AuthorizationConsentService authorizationConsentService() {
-		return new InMemoryOAuth2AuthorizationConsentService();
-	}
+    @Bean
+    public OAuth2AuthorizationConsentService authorizationConsentService() {
+        return new InMemoryOAuth2AuthorizationConsentService();
+    }
 
-	@Bean
-	public JWKSource<SecurityContext> jwkSource() {
-		final KeyPair keyPair = generateRsaKey();
-		final RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-		final RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-		final RSAKey rsaKey = new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString())
-				.build();
-		final JWKSet jwkSet = new JWKSet(rsaKey);
-		return new ImmutableJWKSet<>(jwkSet);
-	}
+    @Bean
+    public JWKSource<SecurityContext> jwkSource() {
+        final KeyPair keyPair = generateRsaKey();
+        final RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        final RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        final RSAKey rsaKey = new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString())
+                .build();
+        final JWKSet jwkSet = new JWKSet(rsaKey);
+        return new ImmutableJWKSet<>(jwkSet);
+    }
 
-	private static KeyPair generateRsaKey() {
-		final KeyPair keyPair;
-		try {
-			final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-			keyPairGenerator.initialize(2048);
-			keyPair = keyPairGenerator.generateKeyPair();
-		} catch (final Exception ex) {
-			throw new IllegalStateException(ex);
-		}
-		return keyPair;
-	}
+    private static KeyPair generateRsaKey() {
+        final KeyPair keyPair;
+        try {
+            final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            keyPair = keyPairGenerator.generateKeyPair();
+        } catch (final Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+        return keyPair;
+    }
 
-	@Bean
-	public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-		return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-	}
+    @Bean
+    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    }
 
-	@Bean
-	public AuthorizationServerSettings authorizationServerSettings() {
-		return AuthorizationServerSettings.builder().build();
-	}
+    @Bean
+    public AuthorizationServerSettings authorizationServerSettings() {
+        return AuthorizationServerSettings.builder().build();
+    }
 
 }
