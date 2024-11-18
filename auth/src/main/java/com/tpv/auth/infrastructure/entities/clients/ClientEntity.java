@@ -59,7 +59,8 @@ public class ClientEntity {
 				.clientAuthenticationMethods(am -> am.addAll(clientEntity.getAuthenticationMethods()))
 				.authorizationGrantTypes(agt -> agt.addAll(clientEntity.getAuthorizationGrantTypes()))
 				.redirectUris(ru -> ru.addAll(redirectUriSet)).scopes(sc -> sc.addAll(scopesSet))
-				.clientSettings(ClientSettings.builder().requireProofKey(clientEntity.isRequireProofKey()).build());
+				.clientSettings(ClientSettings.builder().requireProofKey(clientEntity.requireProofKey)
+						.requireAuthorizationConsent(true).build());
 		return builder.build();
 	}
 }
