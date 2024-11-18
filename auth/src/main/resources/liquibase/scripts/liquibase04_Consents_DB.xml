@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="create-table-authorizationConsent" author="frc">
+    <!-- Create authorizationConsent table -->
+        <sql stripComments="true">
+            CREATE TABLE authorization_consent (
+                registered_client_id varchar(255) NOT NULL,
+                principal_name varchar(255) NOT NULL,
+                authorities varchar(1000) NOT NULL,
+                PRIMARY KEY (registered_client_id, principal_name)
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>
