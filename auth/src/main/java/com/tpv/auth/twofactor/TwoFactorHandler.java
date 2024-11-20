@@ -42,9 +42,10 @@ public class TwoFactorHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         final String randomCode = generateNumberString();
-        log.info("randomCode for user{} is:{}", authentication.getPrincipal(), randomCode);
+        log.info("randomCode for user{} is: {}", authentication.getPrincipal(), randomCode);
         final UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) authentication;
         authToken.setDetails(randomCode);
+        this.twoFactorService.sendTwilioCode(randomCode);
         this.twoFactorService.setAuthentication(authentication);
         this.setAuthentication(request, response);
         this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, this.auth_token);
