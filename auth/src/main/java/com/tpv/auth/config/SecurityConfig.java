@@ -93,7 +93,7 @@ public class SecurityConfig {
                 );
         // .apply(federatedIdentityConfigurer); //deprecated
         http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://127.0.0.1:5173/logout"));
-//        http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://192.168.1.42:5173/logout"));
+        http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://192.168.1.42:5173/logout"));
         http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/clients/**"));
         federatedIdentityConfigurer.init(http);
         return http.build();
@@ -115,6 +115,15 @@ public class SecurityConfig {
     //
     // return new InMemoryRegisteredClientRepository(oidcClient);
     // }
+//    @Bean
+//    public ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+//        DefaultOAuth2AuthorizationRequestResolver resolver =
+//                new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorize");
+//        resolver.setAuthorizationRequestCustomizer(request -> request.getAttributes()
+//                .put(OAuth2ParameterNames.REDIRECT_URI, "http://192.168.1.42:5173/authorized"));
+//        return resolver;
+//    }
+
 
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
