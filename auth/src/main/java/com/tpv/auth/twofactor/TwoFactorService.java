@@ -22,7 +22,7 @@ public class TwoFactorService {
 
     private Authentication authentication;
 
-    public void sendTwilioCode(String code) throws IOException {
+    public void sendTwilioCode(String code, String email) throws IOException {
         final Dotenv dotenv = Dotenv.load();
         final String apiKey = dotenv.get("TWILIO_API_KEY");
 
@@ -32,7 +32,7 @@ public class TwoFactorService {
         // Configuración del correo
         final Email from = new Email(dotenv.get("EMAIL_USER"));
         final String subject = "Codigo Auth";
-        final Email to = new Email(dotenv.get("EMAIL_USER")); // TODO Cambia por el correo del destinatario, aqui lo ideal seria pasarselo por parametro el del userDetail (Cambiar en BBDD)
+        final Email to = new Email(email);
         final Content content = new Content("text/plain", "¡Hola! Este es un mensaje enviado desde Twilio SendGrid." +
                 "En el tienes este code:" + code);
         final Mail mail = new Mail(from, subject, to, content);

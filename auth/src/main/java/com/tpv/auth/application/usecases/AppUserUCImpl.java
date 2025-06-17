@@ -24,25 +24,26 @@ import java.util.Set;
 @AllArgsConstructor
 public class AppUserUCImpl implements AppUserUC, UserDetailsService {
 
-	private final AppUserPort appUserPort;
-	private final RolePort rolePort;
-	private final PasswordEncoder passwordEncoder;
-	@Override
-	public MessageDTO createUser(CreateUserVO createUserVO) {
+    private final AppUserPort appUserPort;
+    private final RolePort rolePort;
+    private final PasswordEncoder passwordEncoder;
 
-		final Set<Role> roles = new HashSet<>();
-		createUserVO.roles().forEach(r -> {
-			final Role role = this.rolePort.findByRole(RoleName.valueOf(r));
-			roles.add(role);
-		});
-		final AppUser appUser = AppUser.builder().username(createUserVO.username())
-				.password(this.passwordEncoder.encode(createUserVO.password())).roles(roles).build();
-		this.appUserPort.upsertUser(appUser);
-		return new MessageDTO("user " + appUser.getUsername() + " saved");
-	}
+    @Override
+    public MessageDTO createUser(CreateUserVO createUserVO) {
 
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		return this.appUserPort.loadUserByUsername(username);
-	}
+        final Set<Role> roles = new HashSet<>();
+        createUserVO.roles().forEach(r -> {
+            final Role role = this.rolePort.findByRole(RoleName.valueOf(r));
+            roles.add(role);
+        });
+        final AppUser appUser = AppUser.builder().username(createUserVO.username())
+                .password(this.passwordEncoder.encode(createUserVO.password())).mail(createUserVO.mail()).roles(roles).build();
+        this.appUserPort.upsertUser(appUser);
+        return new MessageDTO("user " + appUser.getUsername() + " saved");
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return this.appUserPort.loadUserByUsername(username);
+    }
 }

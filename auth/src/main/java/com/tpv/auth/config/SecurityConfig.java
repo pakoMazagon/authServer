@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.tpv.auth.application.ports.AppUserPort;
 import com.tpv.auth.federation.FederatedIdentityConfigurer;
 import com.tpv.auth.federation.UserRepositoryOAuth2UserHandler;
 import com.tpv.auth.infrastructure.repositories.GoogleUserRepository;
@@ -41,6 +42,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -79,21 +82,22 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, TwoFactorService twoFactorService) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, TwoFactorService twoFactorService, AppUserPort appUserPort) throws Exception {
         http.cors(Customizer.withDefaults());
         final FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
                 .oauth2UserHandler(new UserRepositoryOAuth2UserHandler(this.googleUserRepository));
         http.authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/auth/**", "/client/**", "/login").permitAll()
+                        authorize.requestMatchers("/auth/**", "/clients/**", "/login").permitAll()
                                 .requestMatchers("/twofactor").hasAuthority("ROLE_TWO_F")
                                 .anyRequest().authenticated())
                 .formLogin(login -> login.loginPage("/login")
-                        .successHandler(new TwoFactorHandler(twoFactorService))
+                        .successHandler(new TwoFactorHandler(twoFactorService, appUserPort))
                         .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
                 );
         // .apply(federatedIdentityConfigurer); //deprecated
         http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://127.0.0.1:5173/logout"));
         http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://192.168.1.42:5173/logout"));
+//        http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://choco.mazagon:5173/logout"));
         http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/clients/**"));
         federatedIdentityConfigurer.init(http);
         return http.build();
@@ -133,6 +137,7 @@ public class SecurityConfig {
                 context.getClaims().claim("token_type", "id token");
             }
             if (context.getTokenType().getValue().equals("access_token")) {
+                context.getClaims().expiresAt(Instant.now().plus(20, ChronoUnit.HOURS)); // 20 hours
                 context.getClaims().claim("token_type", "access token");
                 final Set<String> roles = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toSet());

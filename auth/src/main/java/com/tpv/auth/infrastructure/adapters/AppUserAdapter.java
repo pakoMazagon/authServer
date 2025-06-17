@@ -19,27 +19,33 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AppUserAdapter implements AppUserPort {
 
-	AppUserRepository appUserRepository;
-	AppUserMapper appUserMapper;
-	@Override
-	public UserDetails loadUserByUsername(String userName) {
-		return this.appUserRepository.findByUsername(userName)
-				.orElseThrow(() -> new RuntimeException("user not found"));
-	}
+    AppUserRepository appUserRepository;
+    AppUserMapper appUserMapper;
 
-	@Override
-	public AppUser upsertUser(AppUser appUser) {
-		final Optional<AppUserEntity> appUserOpt = this.appUserRepository.findByUsername(appUser.getUsername());
-		final AppUserEntity appUserEntity = this.appUserMapper.mapToAppUserEntity(appUser);
-		if (appUserOpt.isEmpty()) {
-			log.info("NEW User");
-			appUserEntity.setId(UUID.randomUUID());
-			return this.appUserMapper.mapToAppUser(this.appUserRepository.save(appUserEntity));
-		}
-		log.info("Modify User");
-		appUserEntity.setId(appUserOpt.get().getId());
-		appUserEntity.setModifiedAt(LocalDateTime.now());
-		appUserEntity.setVersion(appUserOpt.get().getVersion());
-		return this.appUserMapper.mapToAppUser(this.appUserRepository.save(appUserEntity));
-	}
+    @Override
+    public UserDetails loadUserByUsername(String userName) {
+        return this.appUserRepository.findByUsername(userName)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+    }
+
+    @Override
+    public AppUser upsertUser(AppUser appUser) {
+        final Optional<AppUserEntity> appUserOpt = this.appUserRepository.findByUsername(appUser.getUsername());
+        final AppUserEntity appUserEntity = this.appUserMapper.mapToAppUserEntity(appUser);
+        if (appUserOpt.isEmpty()) {
+            log.info("NEW User");
+            appUserEntity.setId(UUID.randomUUID());
+            return this.appUserMapper.mapToAppUser(this.appUserRepository.save(appUserEntity));
+        }
+        log.info("Modify User");
+        appUserEntity.setId(appUserOpt.get().getId());
+        appUserEntity.setModifiedAt(LocalDateTime.now());
+        appUserEntity.setVersion(appUserOpt.get().getVersion());
+        return this.appUserMapper.mapToAppUser(this.appUserRepository.save(appUserEntity));
+    }
+
+    @Override
+    public AppUser findById(UUID id) {
+        return this.appUserMapper.mapToAppUser(this.appUserRepository.findById(id).get());
+    }
 }

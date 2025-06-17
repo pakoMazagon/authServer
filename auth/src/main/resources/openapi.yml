@@ -44,6 +44,8 @@ components:
           type: string
         password:
           type: string
+        mail:
+          type: string
         roles:
           type: array
           items:

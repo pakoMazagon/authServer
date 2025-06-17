@@ -1,5 +1,7 @@
 package com.tpv.auth.twofactor;
 
+import com.tpv.auth.application.ports.AppUserPort;
+import com.tpv.auth.infrastructure.entities.AuditablePersistentEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,7 +33,11 @@ public class TwoFactorHandler implements AuthenticationSuccessHandler {
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final TwoFactorService twoFactorService;
 
-    public TwoFactorHandler(TwoFactorService twoFactorService) {
+
+    private final AppUserPort appUserPort;
+
+    public TwoFactorHandler(TwoFactorService twoFactorService, AppUserPort appUserPort) {
+        this.appUserPort = appUserPort;
         final SimpleUrlAuthenticationSuccessHandler authenticationSuccessHandler =
                 new SimpleUrlAuthenticationSuccessHandler("/twofactor");//nombre de la plantilla
         authenticationSuccessHandler.setAlwaysUseDefaultTargetUrl(true);
@@ -45,7 +51,8 @@ public class TwoFactorHandler implements AuthenticationSuccessHandler {
         log.info("randomCode for user{} is: {}", authentication.getPrincipal(), randomCode);
         final UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) authentication;
         authToken.setDetails(randomCode);
-        this.twoFactorService.sendTwilioCode(randomCode);
+        final AuditablePersistentEntity entity = (AuditablePersistentEntity) authentication.getPrincipal();
+        this.twoFactorService.sendTwilioCode(randomCode, this.appUserPort.findById(entity.getId()).getMail());
         this.twoFactorService.setAuthentication(authentication);
         this.setAuthentication(request, response);
         this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, this.auth_token);
