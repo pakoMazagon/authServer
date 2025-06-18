@@ -6,14 +6,96 @@
     <title>Two Factor</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
     <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+
+    <!-- jQuery & jQuery UI (required for positioning) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css" rel="stylesheet"/>
+
+    <!-- Keyboard plugin -->
+    <link href="https://cdn.jsdelivr.net/npm/virtual-keyboard@1.30.0/dist/css/keyboard.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/virtual-keyboard@1.30.0/dist/js/jquery.keyboard.min.js"></script>
+
+    <style>
+        html, body {
+            min-height: 100vh;
+            overflow-y: auto; /* permitir scroll vertical */
+        }
+        
+        .centered-keyboard {
+            z-index: 9999 !important;
+            background-color: #f8f9fa;  /* tono más claro */
+            border: 1px solid #007bff;  /* azul bootstrap */
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 8px 24px rgba(0,123,255,0.3);
+            width: auto;
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Botones del teclado */
+        .centered-keyboard button {
+            margin: 5px 4px;
+            border-radius: 10px;
+            border: 1.5px solid #007bff;
+            padding: 14px 18px;
+            background-color: white;
+            color: #007bff;
+            font-weight: 600;
+            font-size: 1.1em;
+            height: 48px;            /* altura fija */
+            line-height: 48px;       /* igual que altura para centrar vertical */
+            padding: 0 18px;         /* quitar padding vertical para evitar desplazamiento */
+            box-shadow: 0 4px 8px rgba(0,123,255,0.1);
+            transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+            text-align: center;      /* centrar texto horizontal */
+        }
+        .centered-keyboard button:hover,
+        .centered-keyboard button:focus {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+            outline: none;
+        }
+        
+    </style>
 </head>
 <body>
 <div class="container text-center">
-    <h3>Two Factor</h3>
+    <h3>Introduzca código</h3>
     <form class="form-signin" method="post" th:action="@{/twofactor}">
-        <input class="form-control" id="code" type="text" name="code" placeholder="introduzca el código" required>
+        <input class="form-control" id="code" type="password" name="code" placeholder="introduzca el código" required>
         <button type="submit" class="btn btn-outline-success w-100">Enviar</button>
     </form>
 </div>
+<script>
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+    }
+    $(function () {
+        if (!isMobileDevice()) {
+            $('#code').keyboard({
+                layout: 'num',
+                restrictInput: true,
+                usePreview: false,
+                autoAccept: true,
+                alwaysOpen: false,
+                stayOpen: false,
+                position: {
+                    of: 'button[type="submit"]',
+                    my: 'center top',
+                    at: 'center bottom',
+                    collision: 'fit flip',
+                    offset: "0 10"   // mueve 10px hacia abajo el teclado
+                },
+                css: {
+                    container: 'centered-keyboard',
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>
