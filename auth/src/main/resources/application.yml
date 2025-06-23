@@ -1,10 +1,10 @@
 server:
+  address: 0.0.0.0
   port: 9000
 loggin:
   level:
-    org:
-      springframework:
-        security: TRACE
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
 spring:
   resources:
     static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/
@@ -39,3 +39,5 @@ spring:
         provider:
           google:
             user-name-attribute: email
+#      authorization-server:
+#        issuer: http://auth-server:9000
