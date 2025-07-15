@@ -42,8 +42,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -137,7 +135,7 @@ public class SecurityConfig {
                 context.getClaims().claim("token_type", "id token");
             }
             if (context.getTokenType().getValue().equals("access_token")) {
-                context.getClaims().expiresAt(Instant.now().plus(20, ChronoUnit.HOURS)); // 20 hours
+//                context.getClaims().expiresAt(Instant.now().plus(20, ChronoUnit.HOURS)); // 20 hours
                 context.getClaims().claim("token_type", "access token");
                 final Set<String> roles = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toSet());
@@ -196,7 +194,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder()/*.issuer("http://auth-server:9000")*/.build();
+        return AuthorizationServerSettings.builder().issuer("http://auth-server:9000").build();
     }
 
 }
