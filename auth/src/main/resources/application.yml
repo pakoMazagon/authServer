@@ -39,5 +39,5 @@ spring:
         provider:
           google:
             user-name-attribute: email
-#      authorization-server:
-#        issuer: http://auth-server:9000
+      authorization-server:
+        issuer: http://auth-server:9000
