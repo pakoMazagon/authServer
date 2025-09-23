@@ -95,9 +95,9 @@
 
 <!--		Twilio para enviar el tweofactor code. Escojo el mail al ser gratis-->
 		<dependency>
-			<groupId>com.sendgrid</groupId>
-			<artifactId>sendgrid-java</artifactId>
-			<version>4.9.3</version>
+			<groupId>com.resend</groupId>
+			<artifactId>resend-java</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 
 		<dependency>

@@ -1,19 +1,14 @@
 package com.tpv.auth.twofactor;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.Data;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
-
-import java.io.IOException;
 
 @Service
 @SessionScope
@@ -22,36 +17,24 @@ public class TwoFactorService {
 
     private Authentication authentication;
 
-    public void sendTwilioCode(String code, String email) throws IOException {
+
+    public void sendResendCode(String code, String mail) {
         final Dotenv dotenv = Dotenv.load();
-        final String apiKey = dotenv.get("TWILIO_API_KEY");
+        final String apiKey = dotenv.get("RENDER_API_KEY");
+        final Resend resend = new Resend(apiKey);
 
-        // Crear una instancia de SendGrid
-        final SendGrid sendGrid = new SendGrid(apiKey);
+        final CreateEmailOptions params = CreateEmailOptions.builder()
+                .from("Pako TPV <onboarding@resend.dev>")
+                .to(mail)
+                .subject("Codigo para acceder a TPV")
+                .html("<p>Tu código para acceder es: <strong>" + code + "</strong><p>")
+                .build();
 
-        // Configuración del correo
-        final Email from = new Email(dotenv.get("EMAIL_USER"));
-        final String subject = "Codigo Auth";
-        final Email to = new Email(email);
-        final Content content = new Content("text/plain", "¡Hola! Este es un mensaje enviado desde Twilio SendGrid." +
-                "En el tienes este code:" + code);
-        final Mail mail = new Mail(from, subject, to, content);
-
-        // Enviar el correo
-        final Request request = new Request();
         try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            final Response response = sendGrid.api(request);
-
-            // Mostrar la respuesta
-            System.out.println("Status Code: " + response.getStatusCode());
-            System.out.println("Body: " + response.getBody());
-            System.out.println("Headers: " + response.getHeaders());
-        } catch (final Exception ex) {
-            System.out.printf("ERROR {}%n", ex.getMessage());
-            throw ex;
+            final CreateEmailResponse data = resend.emails().send(params);
+            System.out.println(data.getId());
+        } catch (final ResendException e) {
+            e.printStackTrace();
         }
     }
 }

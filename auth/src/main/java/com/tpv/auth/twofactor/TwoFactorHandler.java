@@ -52,7 +52,7 @@ public class TwoFactorHandler implements AuthenticationSuccessHandler {
         final UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) authentication;
         authToken.setDetails(randomCode);
         final AuditablePersistentEntity entity = (AuditablePersistentEntity) authentication.getPrincipal();
-        this.twoFactorService.sendTwilioCode(randomCode, this.appUserPort.findById(entity.getId()).getMail());
+        this.twoFactorService.sendResendCode(randomCode, this.appUserPort.findById(entity.getId()).getMail());
         this.twoFactorService.setAuthentication(authentication);
         this.setAuthentication(request, response);
         this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, this.auth_token);
