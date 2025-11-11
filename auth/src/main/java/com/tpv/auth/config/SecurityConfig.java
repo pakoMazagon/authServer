@@ -9,7 +9,6 @@ import com.tpv.auth.application.ports.AppUserPort;
 import com.tpv.auth.federation.FederatedIdentityConfigurer;
 import com.tpv.auth.federation.UserRepositoryOAuth2UserHandler;
 import com.tpv.auth.infrastructure.repositories.GoogleUserRepository;
-import com.tpv.auth.twofactor.TwoFactorHandler;
 import com.tpv.auth.twofactor.TwoFactorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +33,6 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
@@ -88,10 +86,11 @@ public class SecurityConfig {
                         authorize.requestMatchers("/auth/**", "/clients/**", "/login").permitAll()
                                 .requestMatchers("/twofactor").hasAuthority("ROLE_TWO_F")
                                 .anyRequest().authenticated())
-                .formLogin(login -> login.loginPage("/login")
-                        .successHandler(new TwoFactorHandler(twoFactorService, appUserPort))
-                        .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
-                );
+//                .formLogin(login -> login.loginPage("/login")
+//                        .successHandler(new TwoFactorHandler(twoFactorService, appUserPort))
+//                        .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
+//                );
+                .formLogin(Customizer.withDefaults());
         // .apply(federatedIdentityConfigurer); //deprecated
         http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://127.0.0.1:5173/logout"));
         http.logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("http://192.168.1.42:5173/logout"));
@@ -194,7 +193,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().issuer("http://auth-server:9000").build();
+        return AuthorizationServerSettings.builder().issuer("http://192.168.1.42:9000").build();
     }
 
 }
